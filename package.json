@@ -1,6 +1,6 @@
 {
   "name": "nrtv-wait",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "wait for unspecified stuff in a different document to finish",
   "main": "wait.js",
   "repository": {
