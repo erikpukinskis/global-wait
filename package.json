@@ -11,10 +11,14 @@
     "test": "node test.js"
   },
   "dependencies": {
-    "nrtv-library": "*"
+    "nrtv-library": "*",
+    "nrtv-browser-bridge": "*",
+    "nrtv-make-request": "*"
   },
   "devDependencies": {
-    "nrtv-test": "*"
+    "nrtv-test": "*",
+    "nrtv-browse": "*",
+    "nrtv-server": "*"
   },
   "license": "ISC",
   "homepage": "https://github.com/erikpukinskis/nrtv-wait"
