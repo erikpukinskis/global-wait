@@ -44,10 +44,10 @@ module.exports = library.export(
         return id
       } else if (command == "done") {
         delete collective[contextId].pending[id]
-        tryToFinish()
+        setTimeout(tryToFinish)
       } else if (callback) {
         collective[contextId].waiters.push(callback)
-        tryToFinish()
+        setTimeout(tryToFinish)
       }
 
       var contextId
