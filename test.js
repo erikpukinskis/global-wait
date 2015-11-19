@@ -31,7 +31,7 @@ test.using(
       [wait.defineInBrowser()],
       function(wait) {
         var id = wait("start")
-        setTimeout(wait.bind(null, "done", id))
+        setTimeout(wait.bind(null, "done", id), 100)
       }
     )
 

@@ -2,13 +2,13 @@ var library = require("nrtv-library")(require)
 
 module.exports = library.export(
   "nrtv-wait",
-  [library.collective({}), "nrtv-browser-bridge"],
-  function(collective, bridge) {
+  ["nrtv-browser-bridge"],
+  function(bridge) {
 
-    function wait(collective) {
+    function wait() {
       for(var i=0; i<arguments.length; i++) {
         var arg = arguments[i]
-        switch(typeof arguments[i]) {
+        switch(typeof arg) {
           case "function":
             var callback = arg
             break
@@ -29,70 +29,58 @@ module.exports = library.export(
       setup()
 
       function uniqueId() {
-        var ours = collective[contextId]
+        var pending = context.__nrtvWaitPending
 
         do {
           var id = Math.random().toString(36).split(".")[1]
-        } while(id != "done" && id != "start" && ours && ours.pending[id])
+        } while(id != "done" && id != "start" && pending && pending[id])
 
         return id
       }
 
       if (command == "start") {
         var id = uniqueId()
-        collective[contextId].pending[id] = true
+        context.__nrtvWaitPending[id] = true
         return id
       } else if (command == "done") {
-        delete collective[contextId].pending[id]
+        delete context.__nrtvWaitPending[id]
         setTimeout(tryToFinish)
       } else if (callback) {
-        collective[contextId].waiters.push(callback)
+        context.__nrtvWaitCallbacks.push(callback)
         setTimeout(tryToFinish)
       }
 
       var contextId
 
       function setup() {
-        contextId = context.__nrtvWaitId
-
-        if (!contextId) {
-          contextId = context.__nrtvWaitId = uniqueId()
-        }
-
-        if (!collective[contextId]) {
-          collective[contextId] = {
-            pending: {},
-            waiters: []
-          }
+        if (!context.__nrtvWaitPending) {
+          context.__nrtvWaitPending = {}
+          context.__nrtvWaitCallbacks = []
         }
       }
 
       function tryToFinish() {
-        for(key in collective[contextId].pending) {
+        for(key in context.__nrtvWaitPending) {
           return
         }
 
-        collective[contextId].waiters.forEach(
+        context.__nrtvWaitCallbacks.forEach(
           function(waiter) { waiter() }
         )
 
-        collective[contextId].waiters = []
+        context.__nrtvWaitCallbacks = []
       }
     }
+
+    var nodeWait = wait.bind(null)
 
     if (!document) {
-      var document = wait.mockDocument = {}
+      var document = nodeWait.mockDocument = {}
     }
 
-    var nodeWait = wait.bind(null, collective)
-
-    nodeWait.defineInBrowser =
-      function() {
-        return bridge.defineFunction(
-          [bridge.collective({})],
-          wait
-        )
-      }
+    nodeWait.defineInBrowser = function() {
+      return bridge.defineFunction(wait)
+    }
 
     return nodeWait
   }
