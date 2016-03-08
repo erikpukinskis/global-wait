@@ -3,7 +3,7 @@ var library = require("nrtv-library")(require)
 module.exports = library.export(
   "nrtv-wait",
   ["nrtv-browser-bridge"],
-  function(bridge) {
+  function(collectiveBridge) {
 
     function wait() {
       for(var i=0; i<arguments.length; i++) {
@@ -78,9 +78,10 @@ module.exports = library.export(
       var document = nodeWait.mockDocument = {}
     }
 
-    nodeWait.defineInBrowser = function() {
-      return bridge.defineFunction(wait)
-    }
+    nodeWait.defineInBrowser =
+      function(bridge) {
+        return (bridge||collectiveBridge).defineFunction(wait)
+      }
 
     return nodeWait
   }
