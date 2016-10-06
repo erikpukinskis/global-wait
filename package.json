@@ -12,13 +12,13 @@
   },
   "dependencies": {
     "nrtv-library": "*",
-    "nrtv-browser-bridge": "*"
+    "browser-bridge": "*"
   },
   "devDependencies": {
     "nrtv-test": "*",
     "nrtv-browse": "*",
     "nrtv-server": "*",
-    "nrtv-make-request": "*"
+    "make-request": "*"
   },
   "license": "ISC",
   "homepage": "https://github.com/erikpukinskis/nrtv-wait"

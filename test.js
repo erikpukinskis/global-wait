@@ -24,11 +24,13 @@ test.using(
 
 test.using(
   "works in the browser",
-  ["./", "nrtv-browse", "nrtv-server", "nrtv-browser-bridge", "nrtv-make-request"],
-  function(expect, done, wait, browse, server, bridge, makeRequest) {
+  ["./", "nrtv-browse", "nrtv-server", "browser-bridge", "make-request"],
+  function(expect, done, wait, browse, server, BrowserBridge, makeRequest) {
+
+    var bridge = new BrowserBridge()
 
     var startAndFinish = bridge.defineFunction(
-      [wait.defineInBrowser()],
+      [wait.defineOn(bridge)],
       function(wait) {
         var id = wait("start")
         setTimeout(wait.bind(null, "done", id), 100)
@@ -39,10 +41,10 @@ test.using(
       function() { shutItDown() }
     )
 
-    var tellServerItsDone = makeRequest.defineInBrowser().withArgs("/finish") 
+    var tellServerItsDone = makeRequest.defineOn(bridge).withArgs("/finish") 
 
     var waitForIt = bridge.defineFunction(
-      [wait.defineInBrowser(), tellServerItsDone],
+      [wait.defineOn(bridge), tellServerItsDone],
       function(wait, tellServerItsDone) {
         wait(tellServerItsDone)
       }
