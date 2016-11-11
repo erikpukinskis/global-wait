@@ -80,7 +80,13 @@ module.exports = library.export(
 
     nodeWait.defineOn =
       function(bridge) {
-        return bridge.defineFunction(wait)
+        var binding = bridge.__nrtvWaitBinding
+
+        if (!binding) {
+          binding = bridge.__nrtvWaitBinding = bridge.defineFunction(wait)
+        }
+
+        return binding
       }
 
     return nodeWait
