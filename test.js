@@ -1,33 +1,9 @@
 var test = require("nrtv-test")(require)
 
-test.only("works in the browser")
-
 test.using(
-  "wait for someone else to finish",
-  ["./"],
-  function(expect, done, wait) {
-    var id = wait("start")
-    var otherId = wait("start")
-    var document = wait.mockDocument
-
-    wait(document, function() {
-      expect(oneFinishedAlready).to.be.true
-      done()
-    })
-
-    wait("done", id)
-
-    var oneFinishedAlready = true
-
-    wait("done", otherId)
-  }
-)
-
-
-test.using(
-  "works in the browser",
-  ["./", "nrtv-browse", "nrtv-server", "browser-bridge", "make-request"],
-  function(expect, done, wait, browse, server, BrowserBridge, makeRequest) {
+  "shares state between frames",
+  ["./", "nrtv-browse", "nrtv-server", "browser-bridge", "make-request", "web-element"],
+  function(expect, done, wait, browse, server, BrowserBridge, makeRequest, element) {
 
     // Inner frame
 
@@ -40,21 +16,22 @@ test.using(
       }
     )
 
-    var finishWork = makeRequest.defineOn(frame).withArgs("/finish-work")
-
     var work = "work"
 
     frame.asap(
       frame.defineFunction(
-        [wait.defineOn(frame), finishWork],
-        function(wait, finishWork) {
-          var ticket = wait("start")
-          setTimeout(finishWork, 1000)
+        [wait.defineOn(frame), makeRequest.defineOn(frame)],
+        function(wait, makeRequest) {
+          var ticket = wait.start()
+          setTimeout(function() {
+            makeRequest("/finish-work")
+            wait.finish(ticket)
+          }, 1000)
         }
       )
     )
 
-    server.addRoute("get", "/frame", frame.sendPage())
+    server.addRoute("get", "/frame", frame.sendPage(element("frame")))
 
 
     // Page
@@ -76,7 +53,16 @@ test.using(
 
     bridge.asap(waitForIt)
 
-    server.addRoute("get", "/", bridge.sendPage())
+    var iframe = element("iframe", {src: "/frame"})
+
+    bridge.asap(
+      [wait.defineOn(bridge)],
+      function(wait) {
+        wait.shareWithIframe("iframe")
+      }
+    )
+
+    server.addRoute("get", "/", bridge.sendPage(iframe))
 
     server.start(8384)
 

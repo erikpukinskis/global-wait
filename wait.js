@@ -1,89 +1,79 @@
 var library = require("nrtv-library")(require)
 
+if (typeof window == "undefined") {
+  var window = {}
+}
+
 module.exports = library.export(
   "nrtv-wait",
   ["browser-bridge"],
   function(collectiveBridge) {
 
-    function wait() {
-      for(var i=0; i<arguments.length; i++) {
-        var arg = arguments[i]
-        switch(typeof arg) {
-          case "function":
-            var callback = arg
-            break
-          case "string":
-            if (arg == "start" || arg == "done") {
-              var command = arg
-            } else {
-              var id = arg
-            }
-            break
-          case "object":
-            var context = arg
+    var generator = function() {
+      var context = window.__nrtvWaitContext
+
+      if (!context) {
+        context = window.__nrtvWaitContext = {
+          work: {},
+          waiting: []
         }
       }
 
-      context = context || document
-
-      setup()
-
-      function uniqueId() {
-        var pending = context.__nrtvWaitPending
-
-        do {
-          var id = Math.random().toString(36).split(".")[1]
-        } while(id != "done" && id != "start" && pending && pending[id])
-
-        return id
+      function wait(callback) {
+        if (typeof callback != "function") {
+          console.log(callback)
+          throw new Error(callback+" is not a callback")
+        }
+        context.waiting.push(callback)
+        setTimeout(tryToFinish)
       }
 
-      if (command == "start") {
+      wait.start = function pause() {
         var id = uniqueId()
-        context.__nrtvWaitPending[id] = true
+        context.work[id] = true
         return id
-      } else if (command == "done") {
-        delete context.__nrtvWaitPending[id]
-        setTimeout(tryToFinish)
-      } else if (callback) {
-        context.__nrtvWaitCallbacks.push(callback)
+      }
+
+      wait.finish = function finish(id) {
+        delete context.work[id]
         setTimeout(tryToFinish)
       }
 
-      var contextId
-
-      function setup() {
-        if (!context.__nrtvWaitPending) {
-          context.__nrtvWaitPending = {}
-          context.__nrtvWaitCallbacks = []
-        }
+      wait.shareWithIframe = function(selector) {
+        document.querySelector(selector).contentWindow.__nrtvWaitContext = context
       }
 
       function tryToFinish() {
-        for(key in context.__nrtvWaitPending) {
+        for(key in context.work) {
           return
         }
 
-        context.__nrtvWaitCallbacks.forEach(
+        context.waiting.forEach(
           function(waiter) { waiter() }
         )
 
-        context.__nrtvWaitCallbacks = []
+        context.waiting = []
       }
+
+      function uniqueId() {
+        do {
+          var id = "wait4"+Math.random().toString(36).split(".")[1]
+        } while(context.work[id])
+
+        return id
+      }
+
+      return wait
     }
 
-    var nodeWait = wait.bind(null)
-
-    if (!document) {
-      var document = nodeWait.mockDocument = {}
-    }
+    var nodeWait = generator()
 
     nodeWait.defineOn =
       function(bridge) {
         var binding = bridge.__nrtvWaitBinding
 
         if (!binding) {
-          binding = bridge.__nrtvWaitBinding = bridge.defineFunction(wait)
+          binding = bridge.__nrtvWaitBinding = bridge.defineSingleton("wait", generator)
         }
 
         return binding
