@@ -81,27 +81,44 @@ module.exports = library.export(
       wait.forIframe = function(frame, callback, count) {
 
         var context = frame.contentWindow.__nrtvWaitContext
+        var body = frame.contentDocument.body
+        var isLoaded = body && !!body.innerHTML
 
         if (!count) {
           count = 1
-        } else if (count > 1) {
-          console.log("iframe:", frame)
-          throw new Error("Trying to wait on an iframe but it doesn't have .contentWindow.__nrtvWaitContext")
+        } else if (count > 20) {
+          throw new Error("Trying to wait on an iframe but it took too long")
         } else {
           count++
         }
 
         if (context) {
           context.wait(callback)
+        } else if (isLoaded && !context) {
+          callback()
         } else {
-          setTimeout(wait.forIframe.bind(null, frame, callback, 1))
-          return
+          setTimeout(wait.forIframe.bind(null, frame, callback, count), delay(count))
         }
 
       }
 
+      function delay(count) {
+        if (!count) {
+          return undefined
+        } else if (count < 10) {
+          return 0
+        } else if (count < 20) {
+          return 200
+        } else if (count < 30) {
+          return 500
+        } else {
+          return 2000
+        }
+      }
+
       return wait
     }
+
 
 
     // Get a singleton to export in Node:
