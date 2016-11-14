@@ -47,20 +47,14 @@ test.using(
     var waitForIt = bridge.defineFunction(
       [wait.defineOn(bridge), stopWaiting],
       function(wait, stopWaiting) {
-        wait(stopWaiting)
+        var iframe = document.querySelector("iframe")
+        wait.forIframe(iframe, stopWaiting)
       }
     )
 
     bridge.asap(waitForIt)
 
     var iframe = element("iframe", {src: "/frame"})
-
-    bridge.asap(
-      [wait.defineOn(bridge)],
-      function(wait) {
-        wait.shareWithIframe("iframe")
-      }
-    )
 
     server.addRoute("get", "/", bridge.sendPage(iframe))
 

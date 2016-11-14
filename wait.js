@@ -1,70 +1,110 @@
 var library = require("nrtv-library")(require)
 
-if (typeof window == "undefined") {
-  var window = {}
-}
-
 module.exports = library.export(
   "nrtv-wait",
   ["browser-bridge"],
   function(collectiveBridge) {
 
     var generator = function() {
-      var context = window.__nrtvWaitContext
 
-      if (!context) {
-        context = window.__nrtvWaitContext = {
-          work: {},
-          waiting: []
-        }
+
+      // Each window and CommonJS instance has its own context.
+
+      function WaitContext() {
+        this.work = {}
+        this.waiting = []
+        this.timeoutIsSet = false
       }
 
-      function wait(callback) {
+      function tryToFinish() {
+        for(key in this.work) {
+          return
+        }
+
+        this.waiting.forEach(function(waiter) { waiter() })
+
+        this.waiting = []
+      }
+
+      WaitContext.prototype.wait = function(callback) {
         if (typeof callback != "function") {
           console.log(callback)
           throw new Error(callback+" is not a callback")
         }
-        context.waiting.push(callback)
-        setTimeout(tryToFinish)
+        this.waiting.push(callback)
+        this.checkInABit()
       }
 
-      wait.start = function pause() {
-        var id = uniqueId()
-        context.work[id] = true
+      WaitContext.prototype.checkInABit = function() {
+        setTimeout(tryToFinish.bind(this))
+      }
+
+      WaitContext.prototype.start = function pause() {
+          var id = this.uniqueId()
+          this.work[id] = true
+          return id
+        }
+
+      WaitContext.prototype.uniqueId = function uniqueId() {
+        do {
+          var id = "wait4"+Math.random().toString(36).split(".")[1]
+        } while(this.work[id])
+
         return id
       }
 
-      wait.finish = function finish(id) {
-        delete context.work[id]
-        setTimeout(tryToFinish)
+      WaitContext.prototype.finish = function finish(id) {
+          delete this.work[id]
+          this.checkInABit()
+        }
+
+
+      // Figure out the context:
+
+      if (typeof window == "undefined") {
+        var context = new WaitContext()
+      } else {
+        var context = window.__nrtvWaitContext || new WaitContext()
+
+        window.__nrtvWaitContext = context
       }
 
-      wait.shareWithIframe = function(selector) {
-        document.querySelector(selector).contentWindow.__nrtvWaitContext = context
-      }
 
-      function tryToFinish() {
-        for(key in context.work) {
+      // Build a singleton:
+
+      var wait = context.wait.bind(context)
+
+      wait.start = context.start.bind(context)
+
+      wait.finish = context.finish.bind(context)
+
+      wait.forIframe = function(frame, callback, count) {
+
+        var context = frame.contentWindow.__nrtvWaitContext
+
+        if (!count) {
+          count = 1
+        } else if (count > 1) {
+          console.log("iframe:", frame)
+          throw new Error("Trying to wait on an iframe but it doesn't have .contentWindow.__nrtvWaitContext")
+        } else {
+          count++
+        }
+
+        if (context) {
+          context.wait(callback)
+        } else {
+          setTimeout(wait.forIframe.bind(null, frame, callback, 1))
           return
         }
 
-        context.waiting.forEach(
-          function(waiter) { waiter() }
-        )
-
-        context.waiting = []
-      }
-
-      function uniqueId() {
-        do {
-          var id = "wait4"+Math.random().toString(36).split(".")[1]
-        } while(context.work[id])
-
-        return id
       }
 
       return wait
     }
+
+
+    // Get a singleton to export in Node:
 
     var nodeWait = generator()
 
