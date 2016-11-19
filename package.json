@@ -1,7 +1,7 @@
 {
   "name": "nrtv-wait",
   "version": "0.11.0",
-  "description": "wait for unspecified stuff in a different document to finish",
+  "description": "Wait for things to finish in other modules and other iframes",
   "main": "wait.js",
   "repository": {
     "type": "git",
