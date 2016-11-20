@@ -1,6 +1,6 @@
 {
   "name": "nrtv-wait",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "Wait for things to finish in other modules and other iframes",
   "main": "wait.js",
   "repository": {
