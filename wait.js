@@ -21,9 +21,13 @@ module.exports = library.export(
           return
         }
 
-        this.waiting.forEach(function(waiter) { waiter() })
+        var callback = this.waiting.shift()
 
-        this.waiting = []
+        if (callback) { callback()}
+
+        if (this.waiting.length > 0) {
+          this.checkInABit()
+        }
       }
 
       WaitContext.prototype.wait = function(callback) {
@@ -39,9 +43,9 @@ module.exports = library.export(
         setTimeout(tryToFinish.bind(this))
       }
 
-      WaitContext.prototype.start = function pause() {
+      WaitContext.prototype.start = function pause(description) {
           var id = this.uniqueId()
-          this.work[id] = true
+          this.work[id] = description || "unknown"
           return id
         }
 
