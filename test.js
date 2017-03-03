@@ -1,15 +1,18 @@
-var test = require("nrtv-test")(require)
+var runTest = require("run-test")(require)
 
-test.using(
+runTest.failAfter(3000)
+
+runTest(
   "shares state between frames",
-  ["./", "nrtv-browse", "nrtv-server", "browser-bridge", "make-request", "web-element"],
-  function(expect, done, wait, browse, server, BrowserBridge, makeRequest, element) {
+  ["./", "browser-task", "web-site", "browser-bridge", "make-request", "web-element"],
+  function(expect, done, wait, browse, WebSite, BrowserBridge, makeRequest, element) {
 
     // Inner frame
 
     var frame = new BrowserBridge()
+    var site = new WebSite()
 
-    server.addRoute("get", "/finish-work",
+    site.addRoute("get", "/finish-work",
       function(request, response) {
         work = "finished"
         response.send("ok")
@@ -31,15 +34,18 @@ test.using(
       )
     )
 
-    server.addRoute("get", "/frame", frame.sendPage(element("frame")))
+    site.addRoute("get", "/frame", frame.requestHandler(element("frame")))
 
 
     // Page
 
     var bridge = new BrowserBridge()
 
-    server.addRoute("get", "/done-waiting",
-      function() { haveExpectations() }
+    site.addRoute("get", "/done-waiting",
+      function(request, response) {
+        response.send("boo ya")
+        haveExpectations()
+      }
     )
 
     var stopWaiting = makeRequest.defineOn(bridge).withArgs("/done-waiting") 
@@ -56,16 +62,16 @@ test.using(
 
     var iframe = element("iframe", {src: "/frame"})
 
-    server.addRoute("get", "/", bridge.sendPage(iframe))
+    site.addRoute("get", "/", bridge.requestHandler(iframe))
 
-    server.start(8384)
+    site.start(8384)
 
     var browser = browse("http://localhost:8384")
 
     function haveExpectations() {
       expect(work).to.equal("finished")
       browser.done()
-      server.stop()
+      site.stop()
       done()
     }
 

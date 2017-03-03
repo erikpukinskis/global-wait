@@ -11,13 +11,13 @@
     "test": "node test.js"
   },
   "dependencies": {
-    "nrtv-library": "*",
-    "browser-bridge": "*"
+    "module-library": "*"
   },
   "devDependencies": {
-    "nrtv-test": "*",
-    "nrtv-browse": "*",
-    "nrtv-server": "*",
+    "run-test": "*",
+    "browser-bridge": "*",
+    "browser-task": "*",
+    "web-site": "*",
     "make-request": "*"
   },
   "license": "ISC",

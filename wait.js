@@ -1,9 +1,8 @@
-var library = require("nrtv-library")(require)
+var library = require("module-library")(require)
 
 module.exports = library.export(
   "nrtv-wait",
-  ["browser-bridge"],
-  function(collectiveBridge) {
+  function() {
 
     var generator = function() {
 
