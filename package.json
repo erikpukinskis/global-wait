@@ -1,11 +1,11 @@
 {
-  "name": "nrtv-wait",
+  "name": "global-wait",
   "version": "0.12.0",
   "description": "Wait for things to finish in other modules and other iframes",
-  "main": "wait.js",
+  "main": "global-wait.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/erikpukinskis/nrtv-wait.git"
+    "url": "https://github.com/erikpukinskis/global-wait.git"
   },
   "scripts": {
     "test": "node test.js"
@@ -21,5 +21,5 @@
     "make-request": "*"
   },
   "license": "ISC",
-  "homepage": "https://github.com/erikpukinskis/nrtv-wait"
+  "homepage": "https://github.com/erikpukinskis/global-wait"
 }

@@ -1,7 +1,7 @@
 var library = require("module-library")(require)
 
 module.exports = library.export(
-  "nrtv-wait",
+  "global-wait",
   function() {
 
     var generator = function() {
