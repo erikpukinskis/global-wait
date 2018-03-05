@@ -85,7 +85,7 @@ module.exports = library.export(
 
         var context = frame.contentWindow.__nrtvWaitContext
         var body = frame.contentDocument.body
-        var isLoaded = body && !!body.innerHTML
+        var isLoaded = body && body.innerHTML != null
 
         if (!count) {
           count = 1
