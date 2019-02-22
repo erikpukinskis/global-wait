@@ -130,15 +130,15 @@ module.exports = library.export(
 
     nodeWait.defineOn =
       function(bridge) {
-        var binding = bridge.remember("bridge-module/bindings/nrtv-wait")
+        var call = bridge.remember("global-wait")
+        if (call) {
+          return call }
 
-        if (!binding) {
-          binding = bridge.defineSingleton("wait", generator)
-          bridge.see("bridge-module/bindings/nrtv-wait", binding)
-        }
+        call = bridge.defineSingleton("wait", generator)
 
-        return binding
-      }
+        bridge.see("global-wait", call)
+
+        return call }
 
     return nodeWait
   }
