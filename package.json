@@ -13,13 +13,6 @@
   "dependencies": {
     "module-library": "*"
   },
-  "devDependencies": {
-    "run-test": "*",
-    "browser-bridge": "*",
-    "browser-task": "*",
-    "web-site": "*",
-    "make-request": "*"
-  },
   "license": "ISC",
   "homepage": "https://github.com/erikpukinskis/global-wait"
 }
