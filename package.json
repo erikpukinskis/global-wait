@@ -1,6 +1,6 @@
 {
   "name": "global-wait",
-  "version": "0.17.0",
+  "version": "0.18.0",
   "description": "Wait for things to finish in other modules and other iframes",
   "main": "global-wait.js",
   "repository": {
